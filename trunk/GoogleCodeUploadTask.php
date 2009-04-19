@@ -119,6 +119,15 @@ class GoogleCodeUploadTask extends Task {
 		fwrite($fp, $request);
 		$response = stream_get_contents($fp);
 		fclose($fp);
+		
+		$response = explode("\r\n", $response);
+		if ($response[0] == 'HTTP/1.0 201 Created') {
+			$location = substr($response[1], 10);
+	    $this->log('Uploaded file: ' . $location);
+		} elseif ($response[0] == 'HTTP/1.0 403 Forbidden') {
+			$msg = "Unable to upload " . $this->file . ": File exists or exceeds max upload size, or filename was invalid.";
+      throw new BuildException($msg, $this->location);
+		}
 	}
 
 	/**
@@ -132,7 +141,7 @@ class GoogleCodeUploadTask extends Task {
 	 * The setter for the attribute "labels"
 	 */
 	public function setLabels($labels) {
-		$this->labels = $labels;
+		$this->labels = trim($labels);
 	}
 
 	/**
