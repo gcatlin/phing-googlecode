@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<project name="phing-googlecode" default="release">
+
+	<property file="build.properties" />
+
+	<fileset dir="." id="project.files">
+		<exclude name="build.properties" />
+		<include name="build.xml" />
+		<include name="GoogleCodeUploadTask.php" />
+		<include name="LICENSE" />
+	</fileset>
+	
+  <target name="release">
+		<property name="build.dir" value="build" />
+
+		<input propertyname="release.version" message="Enter the release version number:" />
+		<property name="release.name" value="${phing.project.name}-${release.version}" />
+		<property name="release.dir" value="${build.dir}/${release.name}" />
+		<property name="release.file" value="${build.dir}/${release.name}.tar.gz" />
+
+		<!-- Create tarball -->
+		<mkdir dir="${release.dir}" />
+		<copy todir="${release.dir}" tstamp="false">
+			<fileset refid="project.files" />
+		</copy>
+		<tar destfile="${release.file}" basedir="${build.dir}" compression="gzip" />
+
+		<!-- Upload tarball to Google Code project -->
+	  <taskdef name="googlecodeupload" classname="GoogleCodeUploadTask" />
+    <googlecodeupload 
+			username="${googlecode.username}" 
+			password="${googlecode.password}" 
+			projectName="${phing.project.name}" 
+			file="${release.file}" 
+			summary="${phing.project.name} v${release.version}" />
+
+		<!-- Clean up -->
+		<delete dir="${build.dir}" />
+  </target>
+
+</project>
